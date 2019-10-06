@@ -19,8 +19,18 @@ def GetHowLongToRun():
     print('You can step through the simulation a year at a time')
     print('or run the simulation for 0 to 5 years')
     print('How many years do you want the simulation to run?')
-    Years = int(input('Enter a number between 0 and 5, or -1 for stepping mode: '))
-    return Years
+
+    while True:
+        user_input = input('Enter a number between 0 and 5, or -1 for stepping mode: ')
+        for index, char in enumerate(user_input):
+            if index == 0 and char == '-':
+                continue
+            if not char.isdigit():
+                break
+        else:
+            user_input = int(user_input)
+            if user_input == -1 or (6 > user_input > 0):
+                return user_input
 
 def CreateNewField():
     Field = [[SOIL for Column in range(FIELDWIDTH)] for Row in range(FIELDLENGTH)]
