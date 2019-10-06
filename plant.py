@@ -10,6 +10,8 @@ SOIL = '.'
 SEED = 'S'
 PLANT = 'P'
 ROCK = 'X'
+COOL = 'C' # super cool plants which thrive during a frosty spring
+COOLSEED = 'c' # seeds which become super fresh when they grow up
 
 FIELDLENGTH = 20
 FIELDWIDTH = 35
@@ -52,17 +54,21 @@ def CreateNewField():
             rocks_per_mille = int(rocks_per_mille)
             if 1000 >= rocks_per_mille >= 0:
                 break
-
     soils = []
     for Row in range(FIELDLENGTH):
         for Column in range(FIELDWIDTH):
             if Field[Row][Column] == SOIL:
                 soils.append((Row, Column))
-
     shuffle(soils)
     for row, column in soils:
         if randint(1,1000) <= rocks_per_mille:
             Field[row][column] = ROCK
+
+    add_cool_seed = get_yes_no_answer('Do you want to a, like, totally rad seed, bro?')
+    if add_cool_seed:
+        Row = FIELDLENGTH // 2
+        Column = FIELDWIDTH // 2
+        Field[Row+2][Column-2] = COOLSEED
 
 
     return Field
@@ -100,27 +106,34 @@ def Display(Field, Season, Year):
     print()
 
 def CountPlants(Field):
-    NumberOfPlants = 0
-    for Row in range(FIELDLENGTH):
-        for Column in range(FIELDWIDTH):
-            if Field[Row][Column] == PLANT:
-                NumberOfPlants += 1
-    if NumberOfPlants == 1:
-        print('There is 1 plant growing')
-    else:
-        print('There are', NumberOfPlants, 'plants growing')
+
+    def _counter(plant_type, plant_type_str):
+        NumberOfPlants = 0
+        for Row in range(FIELDLENGTH):
+            for Column in range(FIELDWIDTH):
+                if Field[Row][Column] == plant_type:
+                    NumberOfPlants += 1
+        if NumberOfPlants == 1:
+            print(f'There is 1 {plant_type_str} growing')
+        else:
+            print('There are', NumberOfPlants, f'{plant_type_str}s growing')
+
+
+    _counter(PLANT, 'plant')
+    _counter(COOL, 'real G')
 
 def SimulateSpring(Field):
     for Row in range(FIELDLENGTH):
         for Column in range(FIELDWIDTH):
             if Field[Row][Column] == SEED:
                 Field[Row][Column] = PLANT
+            elif Field[Row][Column] == COOLSEED:
+                Field[Row][Column] = COOL
+
     CountPlants(Field)
-    if randint(0, 1) == 1:
-        Frost = True
-    else:
-        Frost = False
-    if Frost:
+
+    frost = randint(0, 1) == 1
+    if frost:
         PlantCount = 0
         for Row in range(FIELDLENGTH):
             for Column in range(FIELDWIDTH):
@@ -128,6 +141,19 @@ def SimulateSpring(Field):
                     PlantCount += 1
                     if PlantCount % 3 == 0:
                         Field[Row][Column] = SOIL
+                elif Field[Row][Column] == COOL:
+                    # during a frost, normal plants are unable to compete with
+                    # the way more popular COOL plants for resources and so
+                    # they die
+                    #
+                    # F
+                    for row, column in [
+                            (Row-1, Column-1), (Row-1, Column), (Row-1, Column+1),
+                            (Row, Column-1), (Row, Column), (Row, Column+1),
+                            (Row+1, Column-1), (Row+1, Column), (Row+1, Column+1)]:
+                        if Field[Row][Column] == PLANT:
+                            Field[Row][Column] = SOIL
+
         print('There has been a frost')
         CountPlants(Field)
     return Field
@@ -138,7 +164,7 @@ def SimulateSummer(Field):
         PlantCount = 0
         for Row in range(FIELDLENGTH):
             for Column in range(FIELDWIDTH):
-                if Field[Row][Column] == PLANT:
+                if Field[Row][Column] in [PLANT, COOL]:
                     PlantCount += 1
                     if PlantCount % 2 == 0:
                         Field[Row][Column] = SOIL
@@ -147,13 +173,14 @@ def SimulateSummer(Field):
 
     virus = randint(0, 9)
     virus_severity = randint(1, 100)
+    virus_affects_cool_plants = randint(0, 1) == 1
     plants = []
 
     if virus == 0:
         PlantCount = 0
         for Row in range(FIELDLENGTH):
             for Column in range(FIELDWIDTH):
-                if Field[Row][Column] == PLANT:
+                if Field[Row][Column] == PLANT or (Field[Row][Column] == COOL and virus_affects_cool_plants):
                     plants.append((Row, Column))
 
         shuffle(plants)
@@ -162,12 +189,14 @@ def SimulateSummer(Field):
                 Field[plant[0]][plant[1]] = SOIL
 
         print(f'There has been a virus which destroyed {virus_severity}% of your crops')
+        if virus_affects_cool_plants:
+            print("It affected the sick plants too.")
         CountPlants(Field)
 
 
     return Field
 
-def SeedLands(Field, Row, Column):
+def SeedLands(Field, Row, Column, seed_type):
     """Plants a seed"""
 
     # No need to verify if seed would land in field, since in real life if the
@@ -184,27 +213,33 @@ def SeedLands(Field, Row, Column):
 
     if Row >= 0 and Row < FIELDLENGTH and Column >= 0 and Column < FIELDWIDTH:
         if Field[Row][Column] == SOIL:
-            Field[Row][Column] = SEED
+            Field[Row][Column] = seed_type
+
     return Field
 
 def SimulateAutumn(Field):
+    def _plant_seeds(Field, Row, Column, seed_type):
+        Field = SeedLands(Field, Row - 1, Column - 1, seed_type)
+        Field = SeedLands(Field, Row - 1, Column, seed_type)
+        Field = SeedLands(Field, Row - 1, Column + 1, seed_type)
+        Field = SeedLands(Field, Row, Column - 1, seed_type)
+        Field = SeedLands(Field, Row, Column + 1, seed_type)
+        Field = SeedLands(Field, Row + 1, Column - 1, seed_type)
+        Field = SeedLands(Field, Row + 1, Column, seed_type)
+        Field = SeedLands(Field, Row + 1, Column + 1, seed_type)
+
     for Row in range(FIELDLENGTH):
         for Column in range(FIELDWIDTH):
             if Field[Row][Column] == PLANT:
-                Field = SeedLands(Field, Row - 1, Column - 1)
-                Field = SeedLands(Field, Row - 1, Column)
-                Field = SeedLands(Field, Row - 1, Column + 1)
-                Field = SeedLands(Field, Row, Column - 1)
-                Field = SeedLands(Field, Row, Column + 1)
-                Field = SeedLands(Field, Row + 1, Column - 1)
-                Field = SeedLands(Field, Row + 1, Column)
-                Field = SeedLands(Field, Row + 1, Column + 1)
+                _plant_seeds(Field, Row, Column, SEED)
+            elif Field[Row][Column] == COOL:
+                _plant_seeds(Field, Row, Column, COOLSEED)
     return Field
 
 def SimulateWinter(Field):
     for Row in range(FIELDLENGTH):
         for Column in range(FIELDWIDTH):
-            if Field[Row][Column] == PLANT:
+            if Field[Row][Column] in [PLANT, COOL]:
                 Field[Row][Column] = SOIL
     return Field
 
