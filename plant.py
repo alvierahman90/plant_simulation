@@ -245,10 +245,7 @@ def Simulation():
             filename = input('Enter file name to save to: ')
             filepath = pathlib.Path(filename)
         with open(filename, 'a') as f:
-            for Row in range(FIELDLENGTH):
-                for Column in range(FIELDWIDTH):
-                    f.write(Field[Row][Column])
-                f.write('|{0:>3}\n'.format(Row))
+            write_field_to_file(Field, f)
 
 def get_yes_no_answer(prompt):
     answer = 'ahhhhhhhhhh'
@@ -260,6 +257,12 @@ def get_yes_no_answer(prompt):
             answer = False
 
     return answer
+
+def write_field_to_file(field, file):
+    for row in range(FIELDLENGTH):
+        for column in range(FIELDWIDTH):
+            f.write(field[row][column])
+
 
 if __name__ == "__main__":
     Simulation()
