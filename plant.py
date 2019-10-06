@@ -4,6 +4,7 @@
 # developed in a Python 3 environment
 
 from random import randint, shuffle
+import pathlib
 
 SOIL = '.'
 SEED = 'S'
@@ -206,7 +207,26 @@ def Simulation():
                 if Response == 'x' or Response == 'X':
                     Continuing = False
         print('End of Simulation')
-    input()
+
+    save_field = 'ahhhhhhhhhh'
+
+    while save_field not in [True, False]:
+        save_field = input('Save output field? (y/n) ').lower()
+        if save_field in ['y', 'yes', 'yeet']:
+            save_field = True
+        elif save_field in ['n', 'no', 'nah bruv']:
+            save_field = False
+
+    if save_field:
+        filepath = pathlib.Path('/')
+        while filepath.exists():
+            filename = input('Enter file name to save to: ')
+            filepath = pathlib.Path(filename)
+        with open(filename, 'a') as f:
+            for Row in range(FIELDLENGTH):
+                for Column in range(FIELDWIDTH):
+                    f.write(Field[Row][Column])
+                f.write('|{0:>3}\n'.format(Row))
 
 if __name__ == "__main__":
     Simulation()
