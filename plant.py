@@ -45,9 +45,9 @@ def custom_seed_planter(Field):
     while True:
         plant_count, cool_plant_count = CountPlants(Field)
         Display(Field, None, None)
-        location = input('Enter a location to place something: (AXX, x to finish) ')
+        location = input('Enter a location to place something: (AXX, f to finish) ')
 
-        if location in ['x', 'X'] and plant_count + cool_plant_count < 1:
+        if location.lower() == 'f'  and plant_count + cool_plant_count < 1:
             print("You must place at least one plant.")
             continue
 
@@ -86,15 +86,18 @@ def place_rocks(Field):
             if 1000 >= rocks_per_mille >= 0:
                 break
 
-        soils = []
-        for Row in range(FIELDLENGTH):
-            for Column in range(FIELDWIDTH):
-                if Field[Row][Column] == SOIL:
-                    soils.append((Row, Column))
-        shuffle(soils)
-        for row, column in soils:
-            if randint(1,1000) <= rocks_per_mille:
-                Field[row][column] = ROCK
+    soils = []
+    for Row in range(FIELDLENGTH):
+        for Column in range(FIELDWIDTH):
+            if Field[Row][Column] == SOIL:
+                soils.append((Row, Column))
+
+    shuffle(soils)
+    for row, column in soils:
+        if randint(1,1000) <= rocks_per_mille:
+            Field[row][column] = ROCK
+
+    return Field
 
 def CreateNewField():
     Field = [[SOIL for Column in range(FIELDWIDTH)] for Row in range(FIELDLENGTH)]
@@ -111,7 +114,8 @@ def CreateNewField():
             Row = FIELDLENGTH // 2
             Column = FIELDWIDTH // 2
             Field[Row+2][Column-2] = COOLSEED
-        place_rocks(Field)
+
+    Field = place_rocks(Field)
 
     return Field
 
@@ -287,6 +291,16 @@ def SimulateWinter(Field):
         for Column in range(FIELDWIDTH):
             if Field[Row][Column] in [PLANT, COOL]:
                 Field[Row][Column] = SOIL
+
+    bird_column = randint(0, FIELDWIDTH-1)
+    print(bird_column)
+    for row in range(FIELDLENGTH-1):
+        print(row)
+        if Field[row][bird_column] in [SEED, COOLSEED]:
+            Field[row][bird_column] = SOIL
+
+    print(f"This years bird ate all the seeds in column {COLUMN_LETTERS[bird_column]}")
+
     return Field
 
 def SimulateOneYear(Field, Year):
