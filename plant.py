@@ -39,7 +39,6 @@ def CreateNewField():
     Column = FIELDWIDTH // 2
     Field[Row][Column] = SEED
 
-    add_rocks = get_yes_no_answer('Do you want to add rocks to the field?')
     rocks_per_mille = ' '
     while True:
         rocks_per_mille = input('How many rocks do you want to add? (per thousand soils) ')
