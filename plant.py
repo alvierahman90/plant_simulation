@@ -38,38 +38,80 @@ def GetHowLongToRun():
             if user_input == -1 or (6 > user_input > 0):
                 return user_input
 
-def CreateNewField():
-    Field = [[SOIL for Column in range(FIELDWIDTH)] for Row in range(FIELDLENGTH)]
-    Row = FIELDLENGTH // 2
-    Column = FIELDWIDTH // 2
-    Field[Row][Column] = SEED
 
-    rocks_per_mille = ' '
+def custom_seed_planter(Field):
+    plant_count = 0
+    cool_plant_count = 0
     while True:
-        rocks_per_mille = input('How many rocks do you want to add? (per thousand soils) ')
-        for char in rocks_per_mille:
-            if not char.isdigit():
-                break
+        plant_count, cool_plant_count = CountPlants(Field)
+        Display(Field, None, None)
+        location = input('Enter a location to place something: (AXX, x to finish) ')
+
+        if location in ['x', 'X'] and plant_count + cool_plant_count < 1:
+            print("You must place at least one plant.")
+            continue
+
+        if location in ['x', 'X']:
+            break
+
+        # check if first character is in the alphabet.
+        # probably a rather hacky way to do it, but it works
+        if not 0x61 <= ord(location[0].lower()) <= 0x7A:
+            continue
+
+        column = COLUMN_LETTERS.index(location[0])
+        location = location[1:]
+        if not is_numerical(location):
+            continue
+        row = int(location)
+
+        if not (column in range(FIELDWIDTH) or row in range(FIELDLENGTH)):
+            continue
+
+        item = ''
+        while item not in [PLANT, SEED, COOL, COOLSEED, SOIL, ROCK]:
+            item = input("What would like to place? (P/S/C/c/./X) ")
+
+        Field[row][column] = item
+
+    return Field
+
+def place_rocks(Field):
+    while True:
+        rocks_per_mille = input('How many extra rocks do you want to add? (per thousand soils) ')
+        if not is_numerical(rocks_per_mille):
+            continue
         else:
             rocks_per_mille = int(rocks_per_mille)
             if 1000 >= rocks_per_mille >= 0:
                 break
-    soils = []
-    for Row in range(FIELDLENGTH):
-        for Column in range(FIELDWIDTH):
-            if Field[Row][Column] == SOIL:
-                soils.append((Row, Column))
-    shuffle(soils)
-    for row, column in soils:
-        if randint(1,1000) <= rocks_per_mille:
-            Field[row][column] = ROCK
 
-    add_cool_seed = get_yes_no_answer('Do you want to a, like, totally rad seed, bro?')
-    if add_cool_seed:
+        soils = []
+        for Row in range(FIELDLENGTH):
+            for Column in range(FIELDWIDTH):
+                if Field[Row][Column] == SOIL:
+                    soils.append((Row, Column))
+        shuffle(soils)
+        for row, column in soils:
+            if randint(1,1000) <= rocks_per_mille:
+                Field[row][column] = ROCK
+
+def CreateNewField():
+    Field = [[SOIL for Column in range(FIELDWIDTH)] for Row in range(FIELDLENGTH)]
+
+    custom_seed_position = get_yes_no_answer('Do you want to customize the initial field?')
+    if custom_seed_position:
+        Field = custom_seed_planter(Field)
+    else:
         Row = FIELDLENGTH // 2
         Column = FIELDWIDTH // 2
-        Field[Row+2][Column-2] = COOLSEED
-
+        Field[Row][Column] = SEED
+        add_cool_seed = get_yes_no_answer('Do you want to a, like, totally rad seed, bro?')
+        if add_cool_seed:
+            Row = FIELDLENGTH // 2
+            Column = FIELDWIDTH // 2
+            Field[Row+2][Column-2] = COOLSEED
+        place_rocks(Field)
 
     return Field
 
@@ -89,15 +131,19 @@ def ReadFile():
             continue
 
 def InitialiseField():
-    Response = input('Do you want to load a file with seed positions? (Y/N): ')
-    if Response == 'Y':
+    if get_yes_no_answer('Do you want to load a file with seed positions?'):
         Field = ReadFile()
     else:
         Field = CreateNewField()
     return Field
 
 def Display(Field, Season, Year):
-    print('Season: ', Season, '    Year number: ', Year)
+    if Season is not None:
+        print('Season: ', Season, end='')
+    if Season is  not None and Year is None:
+        print()
+    if Year is not None:
+        print('    Year number: ', Year)
     print(COLUMN_LETTERS[:FIELDWIDTH])
     for Row in range(FIELDLENGTH):
         for Column in range(FIELDWIDTH):
@@ -118,9 +164,9 @@ def CountPlants(Field):
         else:
             print('There are', NumberOfPlants, f'{plant_type_str}s growing')
 
+        return NumberOfPlants
 
-    _counter(PLANT, 'plant')
-    _counter(COOL, 'real G')
+    return _counter(PLANT, 'plant'), _counter(COOL, 'real G')
 
 def SimulateSpring(Field):
     for Row in range(FIELDLENGTH):
@@ -279,8 +325,8 @@ def Simulation():
         while filepath.exists():
             filename = input('Enter file name to save to: ')
             filepath = pathlib.Path(filename)
-        with open(filename, 'a') as f:
-            write_field_to_file(Field, f)
+        with open(filename, 'a') as file:
+            write_field_to_file(Field, file)
 
 def get_yes_no_answer(prompt):
     answer = 'ahhhhhhhhhh'
@@ -293,10 +339,18 @@ def get_yes_no_answer(prompt):
 
     return answer
 
+def is_numerical(string):
+    for char in string:
+        if not char.isdigit():
+            break
+    else:
+        return True
+    return False
+
 def write_field_to_file(field, file):
     for row in range(FIELDLENGTH):
         for column in range(FIELDWIDTH):
-            f.write(field[row][column])
+            file.write(field[row][column])
 
 
 if __name__ == "__main__":
