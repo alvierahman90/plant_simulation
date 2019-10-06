@@ -9,7 +9,7 @@ import pathlib
 SOIL = '.'
 SEED = 'S'
 PLANT = 'P'
-ROCKS = 'X'
+ROCK = 'X'
 
 FIELDLENGTH = 20
 FIELDWIDTH = 35
@@ -38,6 +38,31 @@ def CreateNewField():
     Row = FIELDLENGTH // 2
     Column = FIELDWIDTH // 2
     Field[Row][Column] = SEED
+
+    add_rocks = get_yes_no_answer('Do you want to add rocks to the field?')
+    rocks_per_mille = ' '
+    while True:
+        rocks_per_mille = input('How many rocks do you want to add? (per thousand soils) ')
+        for char in rocks_per_mille:
+            if not char.isdigit():
+                break
+        else:
+            rocks_per_mille = int(rocks_per_mille)
+            if 1000 >= rocks_per_mille >= 0:
+                break
+
+    soils = []
+    for Row in range(FIELDLENGTH):
+        for Column in range(FIELDWIDTH):
+            if Field[Row][Column] == SOIL:
+                soils.append((Row, Column))
+
+    shuffle(soils)
+    for row, column in soils:
+        if randint(1,1000) <= rocks_per_mille:
+            Field[row][column] = ROCK
+
+
     return Field
 
 def ReadFile():
@@ -192,6 +217,7 @@ def SimulateOneYear(Field, Year):
 
 def Simulation():
     YearsToRun = GetHowLongToRun()
+
     if YearsToRun != 0:
         Field = InitialiseField()
         if YearsToRun >= 1:
@@ -208,14 +234,7 @@ def Simulation():
                     Continuing = False
         print('End of Simulation')
 
-    save_field = 'ahhhhhhhhhh'
-
-    while save_field not in [True, False]:
-        save_field = input('Save output field? (y/n) ').lower()
-        if save_field in ['y', 'yes', 'yeet']:
-            save_field = True
-        elif save_field in ['n', 'no', 'nah bruv']:
-            save_field = False
+    save_field = get_yes_no_answer('Save output field?')
 
     if save_field:
         filepath = pathlib.Path('/')
@@ -227,6 +246,17 @@ def Simulation():
                 for Column in range(FIELDWIDTH):
                     f.write(Field[Row][Column])
                 f.write('|{0:>3}\n'.format(Row))
+
+def get_yes_no_answer(prompt):
+    answer = 'ahhhhhhhhhh'
+    while answer not in [True, False]:
+        answer = input(prompt + '(y/n) ').lower()
+        if answer in ['y', 'yes', 'yeet']:
+            answer = True
+        elif answer in ['n', 'no', 'nah bruv']:
+            answer = False
+
+    return answer
 
 if __name__ == "__main__":
     Simulation()
