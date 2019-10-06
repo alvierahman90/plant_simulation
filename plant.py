@@ -117,6 +117,20 @@ def SimulateSummer(Field):
     return Field
 
 def SeedLands(Field, Row, Column):
+    """Plants a seed"""
+
+    # No need to verify if seed would land in field, since in real life if the
+    # wind blew it out of the field it wouldn't be on the field anyways
+    wind = randint(0, 4)
+    if wind == 0:   # North
+        Row += 1
+    elif wind == 1: # East
+        Column += 1
+    elif wind == 2: # South
+        Row -= 1
+    elif wind == 3: # West
+        Column -= 1
+
     if Row >= 0 and Row < FIELDLENGTH and Column >= 0 and Column < FIELDWIDTH:
         if Field[Row][Column] == SOIL:
             Field[Row][Column] = SEED
