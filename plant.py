@@ -3,7 +3,7 @@
 # written by the AQA AS1 Programmer Team
 # developed in a Python 3 environment
 
-from random import *
+from random import randint, shuffle
 
 SOIL = '.'
 SEED = 'S'
@@ -114,6 +114,27 @@ def SimulateSummer(Field):
                         Field[Row][Column] = SOIL
         print('There has been a severe drought')
         CountPlants(Field)
+
+    virus = randint(0, 9)
+    virus_severity = randint(1, 100)
+    plants = []
+
+    if virus == 0:
+        PlantCount = 0
+        for Row in range(FIELDLENGTH):
+            for Column in range(FIELDWIDTH):
+                if Field[Row][Column] == PLANT:
+                    plants.append((Row, Column))
+
+        shuffle(plants)
+        for plant in plants:
+            if randint(0, 100) <= virus_severity:
+                Field[plant[0]][plant[1]] = SOIL
+
+        print(f'There has been a virus which destroyed {virus_severity}% of your crops')
+        CountPlants(Field)
+
+
     return Field
 
 def SeedLands(Field, Row, Column):
