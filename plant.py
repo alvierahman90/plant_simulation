@@ -40,10 +40,10 @@ def CreateNewField():
     return Field
 
 def ReadFile():
-    FileName = input('Enter file name: ')
+    FileName = input('Enter file name (without .txt extention): ')
     Field = [[SOIL for Column in range(FIELDWIDTH)] for Row in range(FIELDLENGTH)]
     try:
-        FileHandle = open(FileName, 'r')
+        FileHandle = open(FileName + '.txt' , 'r')
         for Row in range(FIELDLENGTH):
             FieldRow = FileHandle.readline()
             for Column in range(FIELDWIDTH):
