@@ -14,6 +14,9 @@ ROCK = 'X'
 FIELDLENGTH = 20
 FIELDWIDTH = 35
 
+# supports max field width of 52
+COLUMN_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+
 def GetHowLongToRun():
     print('Welcome to the Plant Growing Simulation')
     print()
@@ -89,6 +92,7 @@ def InitialiseField():
 
 def Display(Field, Season, Year):
     print('Season: ', Season, '    Year number: ', Year)
+    print(COLUMN_LETTERS[:FIELDWIDTH])
     for Row in range(FIELDLENGTH):
         for Column in range(FIELDWIDTH):
             print(Field[Row][Column], end='')
